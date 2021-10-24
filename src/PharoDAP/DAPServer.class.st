@@ -1,6 +1,8 @@
 Class {
 	#name : #DAPServer,
 	#superclass : #Object,
+	#traits : 'TDebugger',
+	#classTraits : 'TDebugger classTrait',
 	#instVars : [
 		'tcpServer',
 		'serverLoop',
@@ -27,10 +29,34 @@ Class {
 		'lineOffset',
 		'numberOfStacks',
 		'justMyCode',
-		'shouldStop'
+		'shouldStop',
+		'port'
+	],
+	#classInstVars : [
+		'rank',
+		'availableAutomatically',
+		'uniqueInstance'
 	],
 	#category : #PharoDAP
 }
+
+{ #category : #accessing }
+DAPServer class >> closeAllDebuggers [
+	self allInstances do:[:dbg| dbg terminate]
+]
+
+{ #category : #'instance creation' }
+DAPServer class >> debugSession: aDebugSession [
+	self uniqueInstance debugSession: aDebugSession
+	
+]
+
+{ #category : #accessing }
+DAPServer class >> uniqueInstance [
+	 uniqueInstance ifNil:[
+		uniqueInstance := self new.
+		uniqueInstance start;yourself ]
+]
 
 { #category : #'handlers management' }
 DAPServer >> addHandler: aDAPHandler [
@@ -792,6 +818,11 @@ DAPServer >> pluggableCompilationBlock: aOneArgBlock [
 	pluggableEvaluationBlock := aOneArgBlock
 ]
 
+{ #category : #accessing }
+DAPServer >> port [
+	^ port
+]
+
 { #category : #context }
 DAPServer >> removeMessageProcess: anId [
 	self context removeMessageProcess: anId
@@ -868,7 +899,8 @@ DAPServer >> start [
 		ifNil: [ DAPError signal: 'DAPServer started but nobody join me' ] ]
 		forkAt: Processor lowIOPriority
 		named: 'DAP started'.
-	^ tcpServer localPort
+	port :=tcpServer localPort.
+	^ port
 ]
 
 { #category : #stopping }

@@ -6,7 +6,7 @@ Class {
 		'receiver',
 		'messageSelector'
 	],
-	#category : #PharoDAP
+	#category : #'PharoDAP-Core'
 }
 
 { #category : #accessing }

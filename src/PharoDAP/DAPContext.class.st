@@ -8,7 +8,7 @@ Class {
 		'textItems',
 		'messageProcesses'
 	],
-	#category : #PharoDAP
+	#category : #'PharoDAP-Core'
 }
 
 { #category : #initialization }

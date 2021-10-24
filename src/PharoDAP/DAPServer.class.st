@@ -37,12 +37,12 @@ Class {
 		'availableAutomatically',
 		'uniqueInstance'
 	],
-	#category : #PharoDAP
+	#category : #'PharoDAP-Core'
 }
 
 { #category : #accessing }
 DAPServer class >> closeAllDebuggers [
-	self allInstances do:[:dbg| dbg terminate]
+	self uniqueInstance stop
 ]
 
 { #category : #'instance creation' }
@@ -53,7 +53,8 @@ DAPServer class >> debugSession: aDebugSession [
 
 { #category : #accessing }
 DAPServer class >> uniqueInstance [
-	 uniqueInstance ifNil:[
+
+	^ uniqueInstance ifNil:[
 		uniqueInstance := self new.
 		uniqueInstance start;yourself ]
 ]
@@ -232,17 +233,13 @@ DAPServer >> dapLaunch: aDAPLaunchRequest [
 		                         using: breakpointList.
 	compiledMethod := self pluggableCompilationBlock value:
 		                  sourceWithBreakpoints.
-	"compiledMethod  valueWithReceiver:  self pluggableCompilationBlock receiver arguments:{self}.
-	"
+		
 	OupsDebuggerSelectionStrategy debuggerSelectionStrategy:
 		(DAPOupsDebuggerSelector with: { self }).
 	self execute: [ compiler evaluate ] recordedAs: 'Evaluate'.
 
 	'change debugger' record.
 	OupsDebuggerSelectionStrategy debuggerSelectionStrategy: strategy.
-	"we recove the old debugger once we receive the #debuggSession: strategy is an instance var
-	jmari: I think it's better reactivate the normal debugger once we hace received the debugSession 
-	for debugging purposes "
 	'terminated' record.
 	self shouldStop: true.
 	self sendMessage: DAPTerminatedEvent new
@@ -537,10 +534,10 @@ DAPServer >> debugMode: anObject [
 DAPServer >> debugSession: aDebugSession [
 	'DAP debugSession:' record.
 	debugSession := aDebugSession.
-	"easy to debug if we keep the debugger"
+	
 	aDebugSession exception class = Halt ifTrue:[
 		"jumps the halt stack"
-		debugSession stepOver].
+		debugSession step;step].
 	self
 		sendMessage:
 			(DAPStoppedEvent new
